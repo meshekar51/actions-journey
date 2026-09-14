@@ -1,4 +1,4 @@
-name: cache-check
+name: ache-check
 on: push
 jobs:
   pipjob:
