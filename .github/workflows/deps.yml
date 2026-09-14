@@ -1,0 +1,17 @@
+name: cache-check
+on: push
+jobs:
+  pipjob:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: cache pip downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ hashfiles('requirements.txt') }}
+          restore-keys: |
+            pip-
+      - name: install deps
+        run: pip install -r requirements.txt
