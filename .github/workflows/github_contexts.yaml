@@ -11,4 +11,17 @@ jobs:
        - name: github_context
          run: echo '${{ github.run_id }}'  # Github_context
        - name: jobs_context
-         run: echo '${{ job.status }}-${{ job.workflow_repository }}'
+         run: echo '${{ job.status }}-${{ job.workflow_repository }}' #Jobs output imp we cant directly refer jobs to another jobs take outputs
+  contexts_steps_output:  #Take output and we refer in another jobs this job for create output
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.generate.outputs.tag }}
+    steps:
+     - id: generate
+       run: echo "tag=v1.0.0" >> $GITHUB_OUTPUT
+ consume_output:
+   runs-on: ubuntu-latest
+   needs: contexts_steps_output
+   steps:
+     - run: echo "image tag: ${{ needs.contexts_steps_output.outputs.image_tag }}
+
