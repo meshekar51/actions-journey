@@ -1,19 +1,19 @@
-name: output_pratice
-on: workflow_dispatch
+name: output_check
+on:
+ workflow_dispatch:
 
 jobs:
-  output-job:
+  output_generate:
     runs-on: ubuntu-latest
     outputs:
-        result: ${{ steps.output_id.outputs.name }}
-
-    steps:
-        - id: output_id
-          run: echo 'name=${{ github.ref_name }}' >> $GITHUB_OUTPUT
-  caller-job:
+      check: ${{ steps.generate.outputs.name }}
+   steps:
+     id: generate
+     runs: echo 'name=${{ github.ref_name }}' >> $GITHUB_OUTPUT
+ output_caller:
     runs-on: ubuntu-latest
-    needs: output-job
+    needs: output_generate
     steps:
-      - name: output check
-        run: echo '${{ needs.output-job.outputs.result }}'
-    
+      - name: check output
+        run: echo '${{ needs.output_generate.outputs.check }}'
+   
