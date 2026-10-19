@@ -1,0 +1,10 @@
+name: github-context
+on: workflow_dispatch
+env:
+    runner: ${{ github.ref_name }}
+jobs:
+  contexts_test:
+    runs-on: ubuntu-latest
+    steps:
+       - name: test
+         run: echo 'its main ${{ env.runner }}'
