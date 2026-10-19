@@ -11,4 +11,4 @@ jobs:
        - name: github_context
          run: echo '${{ github.run_id }}'  # Github_context
        - name: jobs_context
-         run: echo '${{ job.status }}-${{ job.workflow_repository }}
+         run: echo '${{ job.status }}-${{ job.workflow_repository }}'
