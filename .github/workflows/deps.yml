@@ -1,5 +1,11 @@
 name: ache-check
-on: push
+on: 
+   push:
+     paths-ignore: 
+        - ".github/workflows/*"
+
+
+
 jobs:
   pipjob:
     runs-on: ubuntu-latest
