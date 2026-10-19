@@ -8,3 +8,5 @@ jobs:
     steps:
        - name: test
          run: echo 'its main ${{ env.runner }}'
+       - name: test1
+         run: echo ${{ github.run_id }}'
