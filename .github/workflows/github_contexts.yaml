@@ -19,9 +19,10 @@ jobs:
     steps:
      - id: generate
        run: echo "tag=v1.0.0" >> $GITHUB_OUTPUT
- consume_output:
-   runs-on: ubuntu-latest
-   needs: contexts_steps_output
-   steps:
-     - run: echo "image tag: ${{ needs.contexts_steps_output.outputs.image_tag }}
+  consume_output:
+    runs-on: ubuntu-latest
+    needs: contexts_steps_output
+    steps:
+      - name: consume output
+        run: echo 'image tag: ${{ needs.contexts_steps_output.outputs.image_tag }}'
 
