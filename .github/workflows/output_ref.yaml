@@ -4,13 +4,13 @@ on:
 
 jobs:
   output_generate:
-    runs-on: ubuntu-latest
-    outputs:
-      check: ${{ steps.generate.outputs.name }}
-   steps:
-     id: generate
-     runs: echo 'name=${{ github.ref_name }}' >> $GITHUB_OUTPUT
- output_caller:
+     runs-on: ubuntu-latest
+     outputs:
+       check: ${{ steps.generate.outputs.name }}
+     steps:
+       id: generate
+       runs: echo 'name=${{ github.ref_name }}' >> $GITHUB_OUTPUT
+  output_caller:
     runs-on: ubuntu-latest
     needs: output_generate
     steps:
