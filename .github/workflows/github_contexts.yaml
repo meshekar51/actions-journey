@@ -6,7 +6,9 @@ jobs:
   contexts_test:
     runs-on: ubuntu-latest
     steps:
-       - name: test
-         run: echo 'its main ${{ env.runner }}'
-       - name: test1
-         run: echo '${{ github.run_id }}'
+       - name: env_context
+         run: echo 'its main ${{ env.runner }}' #env context
+       - name: github_context
+         run: echo '${{ github.run_id }}'  # Github_context
+       - name: jobs_context
+         run: echo '${{ job.status }}-${{ job.workflow_repository }}
