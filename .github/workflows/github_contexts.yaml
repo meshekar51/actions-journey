@@ -24,5 +24,5 @@ jobs:
     needs: contexts_steps_output
     steps:
       - name: consume output
-        run: echo 'image tag: ${{ needs.contexts_steps_output.outputs.image_tag }}'
+        run: echo 'image tag ${{ needs.contexts_steps_output.outputs.image_tag }}'
 
