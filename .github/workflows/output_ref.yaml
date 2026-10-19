@@ -15,5 +15,5 @@ jobs:
     needs: output-job
     steps:
       - name: output check
-        run: echo '${{ needs.output-job.outputs.result }}
+        run: echo '${{ needs.output-job.outputs.result }}'
     
