@@ -6,6 +6,8 @@ on:
 jobs:
   cache-check:
     runs-on: ubuntu-latest
+    env:
+      TF_PLUGIN_CACHE_DIR: /home/runner/.terraform.d/plugin-cache
 
     steps:
       - uses: actions/checkout@v4
@@ -13,21 +15,25 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Cache Terraform Providers
-        id: cache-providers
+      - name: Restore Terraform plugin cache
         uses: actions/cache@v4
         with:
-          path: ~/.terraform.d/plugin-cache
-          key: ${{ runner.os }}-terraform-providers
+          path: /home/runner/.terraform.d/plugin-cache
+          key: ${{ runner.os }}-terraform-providers-${{ hashFiles('**/.terraform.lock.hcl') }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-providers-
 
-      - name: Enable Plugin Cache
+      - name: Configure Terraform plugin cache
         run: |
-          mkdir -p ~/.terraform.d
-          echo 'plugin_cache_dir = "~/.terraform.d/plugin-cache"' > ~/.terraformrc
+          mkdir -p "$HOME/.terraform.d/plugin-cache"
+          cat > "$HOME/.terraformrc" <<'EOF'
+          plugin_cache_dir = "/home/runner/.terraform.d/plugin-cache"
+          EOF
 
       - name: Terraform Init
         run: terraform init
 
       - name: Verify Cache
         run: |
-          ls -la ~/.terraform.d/plugin-cache
+          echo "Terraform plugin cache directory:"
+          ls -la "$HOME/.terraform.d/plugin-cache"
