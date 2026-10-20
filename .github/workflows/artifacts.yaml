@@ -7,7 +7,7 @@ jobs:
      - name: create directory
        run: sudo mkdir /chandra
      - name: write to file
-       run: echo "my name is chandra" >> /chandra/test.txt
+       run: sudo echo "my name is chandra" >> /chandra/test.txt
      - uses: actions/upload-artifact@v7
        with:
          name: my-artifact
