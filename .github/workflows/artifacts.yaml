@@ -8,7 +8,7 @@ jobs:
        run: mkdir /chandra
      - name: write to file
        run: echo "my name is chandra" >> /chandra/test.txt
-     - uses: actions/upload-artifacts@v7
+     - uses: actions/upload-artifacts@v4
        with:
          name: build output
          path: /chandra
