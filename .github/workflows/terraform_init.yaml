@@ -31,4 +31,4 @@ jobs:
           EOF
 
       - name: Terraform Init
-        run: terraform init -input=false
+        run: terraform init -backend=false -input=false
