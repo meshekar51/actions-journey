@@ -5,7 +5,7 @@ jobs:
    runs-on: ubuntu-latest
    steps:
      - name: create directory
-       run: mkdir /chandra
+       run: sudo mkdir /chandra
      - name: write to file
        run: echo "my name is chandra" >> /chandra/test.txt
      - uses: actions/upload-artifact@v7
