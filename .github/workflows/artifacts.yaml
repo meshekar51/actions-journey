@@ -1,0 +1,15 @@
+name: artifacts_upload
+on: workflow_dispatch
+jobs:
+ artifact_upload:
+   runs-on: ubuntu-latest
+   steps:
+     - name: create directory
+       run: mkdir /chandra
+     - name: write to file
+       run: echo "my name is chandra" >> /chandra/test.txt
+     - uses: actions/upload-artifacts@v7
+       with:
+         name: build output
+         path: /chandra
+          
