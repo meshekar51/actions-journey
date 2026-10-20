@@ -1,0 +1,33 @@
+name: Cache Terraform AWS Provider
+
+on:
+  workflow_dispatch:
+
+jobs:
+  cache-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Cache Terraform Providers
+        id: cache-providers
+        uses: actions/cache@v4
+        with:
+          path: ~/.terraform.d/plugin-cache
+          key: ${{ runner.os }}-terraform-providers
+
+      - name: Enable Plugin Cache
+        run: |
+          mkdir -p ~/.terraform.d
+          echo 'plugin_cache_dir = "~/.terraform.d/plugin-cache"' > ~/.terraformrc
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Verify Cache
+        run: |
+          ls -la ~/.terraform.d/plugin-cache
