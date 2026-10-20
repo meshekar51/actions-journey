@@ -19,21 +19,16 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /home/runner/.terraform.d/plugin-cache
-          key: ${{ runner.os }}-terraform-providers-${{ hashFiles('**/.terraform.lock.hcl') }}
+          key: terraform-provider-${{ runner.os }}-${{ hashFiles('**/.terraform.lock.hcl') }}
           restore-keys: |
-            ${{ runner.os }}-terraform-providers-
+            terraform-provider-${{ runner.os }}-
 
       - name: Configure Terraform plugin cache
         run: |
-          mkdir -p "$HOME/.terraform.d/plugin-cache"
-          cat > "$HOME/.terraformrc" <<'EOF'
-          plugin_cache_dir = "/home/runner/.terraform.d/plugin-cache"
+          mkdir -p "$TF_PLUGIN_CACHE_DIR"
+          cat > "$HOME/.terraformrc" <<EOF
+          plugin_cache_dir = "${TF_PLUGIN_CACHE_DIR}"
           EOF
 
       - name: Terraform Init
-        run: terraform init
-
-      - name: Verify Cache
-        run: |
-          echo "Terraform plugin cache directory:"
-          ls -la "$HOME/.terraform.d/plugin-cache"
+        run: terraform init -input=false
