@@ -14,11 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: artifact_upload
     steps:
-      - name: check artifact
-        uses: actions/download-artifact@v7
-        with:
-          name: show the output
-          path: test.txt
-          run: cat test.txt
+     - uses: actions/download-artifact@v8
+       with:
+         name: my-artifact
+     - name: Display structure of downloaded files
+       run: cat test.txt
       
           
