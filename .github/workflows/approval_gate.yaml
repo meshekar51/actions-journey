@@ -8,19 +8,20 @@ on:
       - ".github/workflows/approval_gate.yaml"
 
   push:
-    branches: [main]
+    branches:
+      - main
     paths:
       - "infra/**"
-      - ".github/workflows/terraform.yml"
+      - ".github/workflows/approval_gate.yaml"
 
   workflow_dispatch:
 
 permissions:
   contents: read
-  id-token: write
 
 env:
   AWS_REGION: us-east-1
+  AWS_ACCOUNT_ID: "136283260189"
   TF_IN_AUTOMATION: "true"
   TF_INPUT: "false"
 
@@ -30,12 +31,15 @@ concurrency:
 
 jobs:
 
-  # ------------------------------------
-  # JOB 1: FORMAT AND VALIDATE
-  # ------------------------------------
+  # ============================================
+  # JOB 1 - FORMAT AND VALIDATE
+  # ============================================
   validate:
     name: Terraform Format and Validate
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
 
     defaults:
       run:
@@ -45,13 +49,13 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install Terraform
+      - name: Setup Terraform
         uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: 1.14.6
           terraform_wrapper: false
 
-      - name: Terraform Format Check
+      - name: Terraform Format
         run: terraform fmt -check -recursive
 
       - name: Terraform Init
@@ -60,9 +64,9 @@ jobs:
       - name: Terraform Validate
         run: terraform validate -no-color
 
-  # ------------------------------------
-  # JOB 2: GENERATE AND STORE PLAN
-  # ------------------------------------
+  # ============================================
+  # JOB 2 - TERRAFORM PLAN
+  # ============================================
   plan:
     name: Terraform Plan
     needs: validate
@@ -87,17 +91,45 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install Terraform
+      - name: Setup Terraform
         uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: 1.14.6
           terraform_wrapper: false
+
+      # Check configuration before AWS login
+      - name: Validate AWS OIDC Configuration
+        env:
+          ROLE_ARN: ${{ vars.TF_PLAN_ROLE_ARN }}
+        run: |
+          if [ -z "$ROLE_ARN" ]; then
+            echo "::error::TF_PLAN_ROLE_ARN is missing"
+            exit 1
+          fi
+
+          if [[ "$ROLE_ARN" != arn:aws:iam::136283260189:role/* ]]; then
+            echo "::error::Invalid AWS role ARN"
+            exit 1
+          fi
+
+          if [ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ]; then
+            echo "::error::GitHub OIDC is unavailable"
+            exit 1
+          fi
+
+          echo "AWS role variable configured"
+          echo "GitHub OIDC available"
 
       - name: Authenticate to AWS
         uses: aws-actions/configure-aws-credentials@v6.3.0
         with:
           role-to-assume: ${{ vars.TF_PLAN_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
+          role-session-name: TerraformPlan-${{ github.run_id }}
+          allowed-account-ids: ${{ env.AWS_ACCOUNT_ID }}
+
+      - name: Verify AWS Identity
+        run: aws sts get-caller-identity
 
       - name: Terraform Init
         run: terraform init -input=false
@@ -106,6 +138,7 @@ jobs:
         id: tfplan
         run: |
           set +e
+
           terraform plan \
             -input=false \
             -lock-timeout=5m \
@@ -118,25 +151,34 @@ jobs:
           if [ "$code" -eq 1 ]; then
             echo "Terraform plan failed"
             exit 1
+
           elif [ "$code" -eq 2 ]; then
             echo "changes=true" >> "$GITHUB_OUTPUT"
-          else
+            echo "Infrastructure changes detected"
+
+          elif [ "$code" -eq 0 ]; then
             echo "changes=false" >> "$GITHUB_OUTPUT"
+            echo "No infrastructure changes"
+
+          else
+            echo "Unexpected Terraform exit code: $code"
+            exit 1
           fi
 
-      - name: Save Readable Plan
+      - name: Generate Readable Plan
         run: |
           terraform show -no-color tfplan > plan.txt
 
           {
-            echo "## Terraform Plan"
+            echo "## Terraform Plan Summary"
+            echo ""
             grep -E '^Plan: |^No changes\.' \
               plan.txt | tail -n 1 || true
             echo ""
-            echo "Review the full plan.txt artifact before approval."
+            echo "Review the plan.txt artifact before approval."
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload Terraform Plan
+      - name: Upload Terraform Plan Artifact
         uses: actions/upload-artifact@v4
         with:
           name: terraform-plan
@@ -146,11 +188,11 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  # ------------------------------------
-  # JOB 3: MANUAL APPROVAL + AWS APPLY
-  # ------------------------------------
+  # ============================================
+  # JOB 3 - MANUAL APPROVAL + TERRAFORM APPLY
+  # ============================================
   apply:
-    name: Approval and Terraform Apply
+    name: Production Approval and Apply
     needs: plan
 
     if: needs.plan.outputs.changes == 'true'
@@ -173,17 +215,43 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install Terraform
+      - name: Setup Terraform
         uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: 1.14.6
           terraform_wrapper: false
+
+      - name: Validate Production Role
+        env:
+          ROLE_ARN: ${{ vars.TF_APPLY_ROLE_ARN }}
+        run: |
+          if [ -z "$ROLE_ARN" ]; then
+            echo "::error::TF_APPLY_ROLE_ARN is missing"
+            exit 1
+          fi
+
+          if [[ "$ROLE_ARN" != arn:aws:iam::136283260189:role/* ]]; then
+            echo "::error::Invalid production role ARN"
+            exit 1
+          fi
+
+          if [ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ]; then
+            echo "::error::GitHub OIDC is unavailable"
+            exit 1
+          fi
+
+          echo "Production AWS role configured"
 
       - name: Authenticate to AWS
         uses: aws-actions/configure-aws-credentials@v6.3.0
         with:
           role-to-assume: ${{ vars.TF_APPLY_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
+          role-session-name: TerraformApply-${{ github.run_id }}
+          allowed-account-ids: ${{ env.AWS_ACCOUNT_ID }}
+
+      - name: Verify AWS Identity
+        run: aws sts get-caller-identity
 
       - name: Terraform Init
         run: terraform init -input=false
@@ -194,6 +262,11 @@ jobs:
           name: terraform-plan
           path: infra
 
+      - name: Verify Plan Exists
+        run: |
+          test -f tfplan
+          echo "Terraform saved plan downloaded"
+
       - name: Terraform Apply
         run: |
           terraform apply \
@@ -203,5 +276,9 @@ jobs:
 
       - name: Deployment Summary
         run: |
-          echo "## Deployment Successful" \
-            >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "## Terraform Deployment"
+            echo "Status: Success"
+            echo "Environment: production"
+            echo "AWS Region: us-east-1"
+          } >> "$GITHUB_STEP_SUMMARY"
