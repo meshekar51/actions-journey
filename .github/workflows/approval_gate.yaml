@@ -1,0 +1,206 @@
+
+name: Terraform AWS Deployment
+
+on:
+  pull_request:
+    paths:
+      - "infra/**"
+      - ".github/workflows/approval_gate.yaml"
+
+  push:
+    branches: [main]
+    paths:
+      - "infra/**"
+      - ".github/workflows/terraform.yml"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  TF_IN_AUTOMATION: "true"
+  TF_INPUT: "false"
+
+concurrency:
+  group: terraform-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+
+  # ------------------------------------
+  # JOB 1: FORMAT AND VALIDATE
+  # ------------------------------------
+  validate:
+    name: Terraform Format and Validate
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: infra
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.14.6
+          terraform_wrapper: false
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Init
+        run: terraform init -backend=false -input=false
+
+      - name: Terraform Validate
+        run: terraform validate -no-color
+
+  # ------------------------------------
+  # JOB 2: GENERATE AND STORE PLAN
+  # ------------------------------------
+  plan:
+    name: Terraform Plan
+    needs: validate
+    runs-on: ubuntu-latest
+
+    if: >
+      github.ref == 'refs/heads/main' &&
+      github.event_name != 'pull_request'
+
+    permissions:
+      contents: read
+      id-token: write
+
+    outputs:
+      changes: ${{ steps.tfplan.outputs.changes }}
+
+    defaults:
+      run:
+        working-directory: infra
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.14.6
+          terraform_wrapper: false
+
+      - name: Authenticate to AWS
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: ${{ vars.TF_PLAN_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init
+        run: terraform init -input=false
+
+      - name: Generate Terraform Plan
+        id: tfplan
+        run: |
+          set +e
+          terraform plan \
+            -input=false \
+            -lock-timeout=5m \
+            -detailed-exitcode \
+            -out=tfplan
+
+          code=$?
+          set -e
+
+          if [ "$code" -eq 1 ]; then
+            echo "Terraform plan failed"
+            exit 1
+          elif [ "$code" -eq 2 ]; then
+            echo "changes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changes=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Save Readable Plan
+        run: |
+          terraform show -no-color tfplan > plan.txt
+
+          {
+            echo "## Terraform Plan"
+            grep -E '^Plan: |^No changes\.' \
+              plan.txt | tail -n 1 || true
+            echo ""
+            echo "Review the full plan.txt artifact before approval."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Terraform Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: |
+            infra/tfplan
+            infra/plan.txt
+          if-no-files-found: error
+          retention-days: 7
+
+  # ------------------------------------
+  # JOB 3: MANUAL APPROVAL + AWS APPLY
+  # ------------------------------------
+  apply:
+    name: Approval and Terraform Apply
+    needs: plan
+
+    if: needs.plan.outputs.changes == 'true'
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    environment:
+      name: production
+
+    permissions:
+      contents: read
+      id-token: write
+
+    defaults:
+      run:
+        working-directory: infra
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.14.6
+          terraform_wrapper: false
+
+      - name: Authenticate to AWS
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: ${{ vars.TF_APPLY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init
+        run: terraform init -input=false
+
+      - name: Download Approved Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-plan
+          path: infra
+
+      - name: Terraform Apply
+        run: |
+          terraform apply \
+            -input=false \
+            -lock-timeout=5m \
+            tfplan
+
+      - name: Deployment Summary
+        run: |
+          echo "## Deployment Successful" \
+            >> "$GITHUB_STEP_SUMMARY"
