@@ -20,8 +20,6 @@ permissions:
   contents: read
 
 env:
-  AWS_REGION: us-east-1
-  AWS_ACCOUNT_ID: "136283260189"
   TF_IN_AUTOMATION: "true"
   TF_INPUT: "false"
 
@@ -246,9 +244,9 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v6.3.0
         with:
           role-to-assume: ${{ vars.TF_APPLY_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ vars.DEPLOY_REGION }}
           role-session-name: TerraformApply-${{ github.run_id }}
-          allowed-account-ids: ${{ env.AWS_ACCOUNT_ID }}
+          allowed-account-ids: ${{ vars.AWS_ACCOUNT_ID }}
 
       - name: Verify AWS Identity
         run: aws sts get-caller-identity
