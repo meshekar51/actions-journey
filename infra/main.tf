@@ -12,5 +12,5 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "demo" {
-  bucket = "chandra-demo-bucket-123456789-bigname"
+  bucket = "chandra-demo-bucket-123456789fgfgfdfd-bigname"
 }
