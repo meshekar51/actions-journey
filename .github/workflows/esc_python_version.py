@@ -1,4 +1,4 @@
-name: repo checks
+name: repo_checks
 on:
  push:
  workflow_dispatch:
