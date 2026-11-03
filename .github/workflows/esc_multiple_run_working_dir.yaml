@@ -1,0 +1,15 @@
+name: working dir
+on: push
+
+jobs:
+  workingdir:
+    runs-on: ubuntu-latest
+    steps:
+      - name: working dir
+        working-directory: /etc
+        run: ls
+      - name: multiple runs
+        run: |
+          ls
+          date > /test/test.txt
+          cat /test/test.txt
