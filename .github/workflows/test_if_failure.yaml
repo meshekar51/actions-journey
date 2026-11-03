@@ -1,0 +1,51 @@
+# Real-world case: tests need a throwaway database.
+#   - tests fail      -> failure(): dump the DB logs so you can see why
+#   - pass OR fail    -> always():  upload the test report + delete the DB
+name: "L03 · always() vs failure()"
+
+on:
+  workflow_dispatch:
+    inputs:
+      fail:
+        description: "Make the tests fail?"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Start a test database
+        run: docker run -d --name testdb -e POSTGRES_PASSWORD=pass postgres:17-alpine
+
+      - name: Run tests
+        env:
+          FAIL: ${{ inputs.fail }}
+        run: |
+          mkdir -p reports
+          echo "login test:    PASS" > reports/result.txt
+          if [ "$FAIL" = "true" ]; then
+            echo "checkout test: FAIL (expected 30, got 25)" >> reports/result.txt
+            exit 1
+          fi
+          echo "checkout test: PASS" >> reports/result.txt
+
+      # Runs ONLY if a step above failed
+      - name: "failure() · dump DB logs for debugging"
+        if: failure()
+        run: docker logs testdb
+
+      # Runs whether the tests passed or failed
+      - name: "always() · upload the test report"
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-report
+          path: reports/
+
+      - name: "always() · delete the test database"
+        if: always()
+        run: docker rm -f testdb
