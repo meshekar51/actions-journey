@@ -11,5 +11,5 @@ jobs:
       - name: multiple runs
         run: |
           ls
-          date > /test/test.txt
-          cat /test/test.txt
+          date
+          cat /etc/resolv.conf
