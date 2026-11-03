@@ -1,6 +1,5 @@
 name: repo_checks
 on:
- push:
  workflow_dispatch:
 
 jobs:
