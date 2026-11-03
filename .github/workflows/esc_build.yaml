@@ -1,0 +1,12 @@
+name: several_jobs
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: data print
+        run: echo date
+      - name: present working directory
+        run: pwd
+      - name: done
+        run: echo "done"
