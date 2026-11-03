@@ -1,0 +1,13 @@
+name: Docs
+on:
+  push:
+    paths: docs/**
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: check docs
+        run: nproc
+        
+      
