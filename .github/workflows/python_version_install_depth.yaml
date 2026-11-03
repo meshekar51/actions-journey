@@ -1,0 +1,17 @@
+name: python version and depth
+
+on: push
+
+jobs:
+  pythonversion:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: python install
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          fetch-depth: 0
