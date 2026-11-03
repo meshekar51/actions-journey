@@ -1,0 +1,10 @@
+name: hello
+on: 
+  push:
+  workflow_dispatch:
+jobs:
+  greet:
+   runs-on: ubuntu-latest
+   steps:
+       - name: first code
+         run: echo "anatomy"
