@@ -1,0 +1,12 @@
+name: checkout code
+on: push
+
+jobs:
+  checkout:
+    runs-on: ubuntu-latest
+    steps:
+      - name: check out the code
+        uses: actions/checkout@v7
+      - name: run code
+        run: cat test.py
+        
