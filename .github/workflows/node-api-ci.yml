@@ -16,6 +16,7 @@ jobs:
         with:
           node-version: 24
           package-manager-cache: false # Disable automatic npm caching if not required
+      - name: run npm
         run: |
           npm ci
           npm test
