@@ -6,8 +6,11 @@ env:
 jobs:
   env_test:
     runs-on: ubuntu-latest
+    env:
+     NAME: env_test
     steps:
       - name: env print
         run: |
          echo $APP
          echo $version
+         echo $NAME
