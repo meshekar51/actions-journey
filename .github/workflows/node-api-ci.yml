@@ -1,0 +1,21 @@
+name: Node API CI
+on: 
+  pull_request:
+    paths:
+      apps/node-api/*
+jobs:
+  nodejs-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: install nodejs
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false # Disable automatic npm caching if not required
+        run: |
+          npm ci
+          npm test
