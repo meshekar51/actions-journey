@@ -1,11 +1,17 @@
 name: Node API CI
+
+permissions:
+  contents: read
+
 on: 
   pull_request:
+    branches: [main]
     paths:
       apps/node-api/**
 jobs:
   nodejs-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: checkout code
         uses: actions/checkout@v7
@@ -15,7 +21,8 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: 24
-          package-manager-cache: false # Disable automatic npm caching if not required
+          cache: npm
+          cache-dependency-path: apps/node-api/package-lock.json
       - name: run npm
         run: |
           npm ci
