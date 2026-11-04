@@ -2,7 +2,9 @@ name: my-pipeline
 on: 
   workflow_dispatch:
    inputs: 
-      environment: 
+      environment:
+        description: prod or dev
+        type: choice
         default: dev
         options:
           - prod
@@ -13,7 +15,7 @@ jobs:
    runs-on: ubuntu-latest
    steps:
      - name: Show target
-       run: echo target Environment:{{ inputs.environment }}
+       run: "echo target Environment:${{ inputs.environment }}"
    
    
    
