@@ -2,7 +2,7 @@ name: Node API CI
 on: 
   pull_request:
     paths:
-      apps/node-api/*
+      apps/node-api/**
 jobs:
   nodejs-test:
     runs-on: ubuntu-latest
