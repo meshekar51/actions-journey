@@ -1,0 +1,16 @@
+name: my-pipeline
+on: 
+  workflow_dispatch:
+   inputs: 
+      prod: 
+        required: true
+
+jobs:
+  hello:
+   runs-on: ubuntu-latest
+   steps:
+     - name: Hello
+       run: echo "Hello, Github actions"
+   
+   
+   
