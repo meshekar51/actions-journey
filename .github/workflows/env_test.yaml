@@ -1,0 +1,13 @@
+name: env
+on: workflow_dispatch
+env:
+  APP: python
+  version: 5.2
+jobs:
+  env_test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: env print
+        run: |
+         echo $APP
+         echo $version
