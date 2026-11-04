@@ -2,8 +2,11 @@ name: my-pipeline
 on: 
   workflow_dispatch:
    inputs: 
-      prod: 
-        required: true
+      environment: 
+        default: dev
+        options:
+          - prod
+          - dev
 
 jobs:
   hello:
