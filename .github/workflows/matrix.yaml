@@ -1,0 +1,14 @@
+name: matrix
+on: workflow_dispatch
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run a version check
+        run: python3 -c "import sys; print(sys.version)"
