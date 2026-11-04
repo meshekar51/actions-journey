@@ -16,7 +16,7 @@ jobs:
    steps:
      - name: Show target
        run: |
-          if [ "${{ inputs.environment }} != 'prod' ]; then
+          if [ "${{ inputs.environment }}" != "prod" ]; then
              echo "Only prod is allowed"
              exit 1
           fi
