@@ -10,6 +10,8 @@ jobs:
      NAME: env_test
     steps:
       - name: env print
+        env:
+         NAME: chandra
         run: |
          echo $APP
          echo $version
