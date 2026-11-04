@@ -1,7 +1,10 @@
 name: mypipeline2
 on: 
+  workflow_dispatch: 
   push:
     branches: [main]
+    paths-ignore: 
+      .github/workflows/pipeline2.yaml
 
 env:
  envprod: Prod
