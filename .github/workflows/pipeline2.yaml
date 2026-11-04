@@ -1,0 +1,17 @@
+name: mypipeline2
+on: 
+  push:
+    branches: [main]
+
+env:
+ envprod: Prod
+ envdev: dev
+
+jobs:
+  envtest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: print env
+        run: "echo ${{ env.envprod }}"
+
+
