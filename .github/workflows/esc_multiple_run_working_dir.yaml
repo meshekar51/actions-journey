@@ -1,5 +1,5 @@
 name: working dir
-on: push
+on: workflow_dispatch
 
 jobs:
   workingdir:
