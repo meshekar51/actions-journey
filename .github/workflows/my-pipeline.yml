@@ -15,7 +15,6 @@ jobs:
    runs-on: ubuntu-latest
    steps:
      - name: Show target
-       if: ${{ inputs.environment  == 'prod' }}
        run: |
           if [ "${{ inputs.environment }} != 'prod' ]; then
              echo "Only prod is allowed"
