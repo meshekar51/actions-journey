@@ -12,8 +12,8 @@ jobs:
   hello:
    runs-on: ubuntu-latest
    steps:
-     - name: Hello
-       run: echo "Hello, Github actions"
+     - name: Show target
+       run: echo Target Environment: "${{ input.environment }}"
    
    
    
