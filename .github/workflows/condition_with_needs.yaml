@@ -17,9 +17,7 @@ jobs:
       - name: Notify Slack Cancelled
         if: cancelled()
         run: |
-          curl -X POST -H 'Content-type: application/json' \
-          --data '{"text":"⚠️ Workflow was cancelled"}' \
-          ${{ secrets.SLACK_WEBHOOK_URL }}
+          echo "why it is cancelled"
      
      
      
