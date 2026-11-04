@@ -15,7 +15,7 @@ jobs:
    runs-on: ubuntu-latest
    steps:
      - name: Show target
-       if: ${{ inputs.environment }} == "prod":
+       if: ${{ inputs.environment  == 'prod' }}
        run: "echo target Environment:${{ inputs.environment }}"
    
    
