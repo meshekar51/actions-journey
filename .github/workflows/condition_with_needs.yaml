@@ -1,0 +1,14 @@
+name: conditionals with needs
+on: workflow_dispatch
+
+jobs:
+  test-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run tests
+        run: ls
+      - name: Deploy
+        if: ${{ github.ref == 'refs/heads/feature' }}
+        run: df -h
+      
+  
