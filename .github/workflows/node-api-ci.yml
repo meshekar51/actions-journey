@@ -8,10 +8,15 @@ on:
     branches: [main]
     paths:
       apps/node-api/**
+
+concurrency:
+   group: ${{ github.workflow }}
+   cancel-in-progress: true
 jobs:
   nodejs-test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    
     steps:
       - name: checkout code
         uses: actions/checkout@v7
