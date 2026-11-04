@@ -14,9 +14,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: test-job
     steps:
-      - name: fail job
-        if: always()
-        run: echo "Build failed"
+      - name: Notify Slack Cancelled
+        if: cancelled()
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+          --data '{"text":"⚠️ Workflow was cancelled"}' \
+          ${{ secrets.SLACK_WEBHOOK_URL }}
      
      
      
