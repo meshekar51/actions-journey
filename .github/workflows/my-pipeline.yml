@@ -13,7 +13,7 @@ jobs:
    runs-on: ubuntu-latest
    steps:
      - name: Show target
-       run: echo Target Environment: "${{ input.environment }}"
+       run: echo target Environment:{{ inputs.environment }}
    
    
    
