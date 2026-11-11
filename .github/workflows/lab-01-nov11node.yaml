@@ -1,0 +1,28 @@
+name: Node API CI
+on: 
+  pull_request:
+    branches: [main]
+    paths: apps/node-api/**
+permissions:
+  contents: read
+concurrency:
+  group: ci
+  cancel-in-progress: true
+  
+jobs:
+  ci:
+   runs-on: ubuntu-latest
+   timeout-minutes: 10
+   steps:
+     - name: checkout code
+       uses: actions/checkout@v7
+       with:
+         persistent-credentials: false
+     - name: node setup 
+       uses: actions/setup-node@v7
+       with:
+         node-version: 24
+         package-manager-cache: true # Disable automatic npm caching if not required
+     - run: npm run lint
+     - run: npm test
+  
